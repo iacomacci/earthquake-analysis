@@ -35,3 +35,26 @@ def fetch_earthquakes(start, end, min_mag=5):
 if __name__ == '__main__':
      df = fetch_earthquakes('2020-01-01', '2025-04-01', min_mag=5)
      print(df.head())
+
+# Cleaning and Data processing
+
+print(df.isnull().sum()) #Columns present no missing values.
+df = df.dropna(subset=["magnitude", "depth_km"])
+
+df['year'] = df['time'].dt.year     #Derived into year and month.
+df['month'] = df['time'].dt.month
+
+# Exploratory Data Analysis
+
+print(df[['magnitude','depth_km']].describe())
+df["mag_bin"] = pd.cut(df["magnitude"],
+                       bins=[5,6,7,8,10],
+                       labels=["Moderate (5-6)", "Strong (6-7)", "Major (7-8)", "Great (8-10)"],
+                       right=False)
+print(df["mag_bin"].value_counts().sort_index())
+
+yearly = df.groupby("year").size()
+print(yearly)
+
+monthly = df.groupby('month').size() #Monthly over the years.
+print(monthly)
