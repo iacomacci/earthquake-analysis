@@ -32,7 +32,6 @@ def fetch_earthquakes(start, end, min_mag=5):
             })
         return pd.DataFrame(records)
 
-
 def get_earthquake_data(start='2020-01-01', end='2025-04-01', min_mag=5):
     df = fetch_earthquakes(start, end, min_mag)
 
@@ -52,10 +51,7 @@ def get_earthquake_data(start='2020-01-01', end='2025-04-01', min_mag=5):
                         right=False)
     #print(df["mag_bin"].value_counts().sort_index())
 
-    yearly = df.groupby("year").size()
-   
 
-    monthly = df.groupby('month').size() #Monthly over the years.
     return df
     
 
