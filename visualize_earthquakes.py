@@ -6,7 +6,6 @@ import time
 from fetch_earthquakes import get_earthquake_data
 
 df, yearly, monthly = get_earthquake_data()
-print('Fetched Earthquake Data successfully!')
 
 fig1, (ax1,ax2) = plt.subplots(2,1)
 
