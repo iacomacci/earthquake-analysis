@@ -3,6 +3,9 @@
 ## 📌 Project Overview
 This project fetches global earthquake data from the USGS API, cleans it, visualizes it using Folium, and provides insights into earthquake frequency and magnitude across time and geography.
 
+![Image Description](images/map.png)
+
+
 ## 🔍 Features
 - Dynamic magnitude-based color map (yellow → red)
 - Interactive map with popups
@@ -16,3 +19,6 @@ python visualize_earthquakes.py ''' If you want to visualize the data, two subpl
                                     with block=False, so you need to close them to complete the script execution
                                 '''
 python analysis.py #If you want to check the insights and summary of the data.
+```
+## Data Source and API
+More info here https://earthquake.usgs.gov/fdsnws/event/1/

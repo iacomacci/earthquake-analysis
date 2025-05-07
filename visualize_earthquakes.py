@@ -63,6 +63,7 @@ for _, row in df.iterrows():
         fill_opacity=0.4
     ).add_to(m)
 
+# HTML Legend and title setup
 legend_html = '''
 <div style="
     position: fixed;
