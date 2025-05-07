@@ -33,6 +33,8 @@ def fetch_earthquakes(start, end, min_mag=5):
         return pd.DataFrame(records)
 
 def get_earthquake_data(start='2015-01-01', end='2025-04-01', min_mag=5):
+    print('\n')
+    print('Fetching Earthquake Data...')
     df = fetch_earthquakes(start, end, min_mag)
 
     # Cleaning and Data processing
