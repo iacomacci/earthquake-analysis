@@ -3,6 +3,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 import folium
 import time
+from branca.element import Template, MacroElement
 from fetch_earthquakes import get_earthquake_data
 
 df, yearly, monthly = get_earthquake_data()
@@ -84,8 +85,27 @@ legend_html = '''
 </div>
 '''
 
+title_html = """
+{% macro html(this, kwargs) %}
+    <h3 style="position: fixed; 
+               top: 10px; left: 50px; width: 100%; 
+               z-index:9999;
+               font-size:20px;
+               font-weight:bold;
+               background-color: white;
+               padding: 10px;
+               border-radius: 8px;
+               box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+        Global Earthquake Map (Magnitude ≥ 5, 2015–2025)
+    </h3>
+{% endmacro %}
+"""
+
 m.get_root().html.add_child(folium.Element(legend_html))
 
+macro = MacroElement()
+macro._template = Template(title_html)
+m.get_root().add_child(macro)
 
 m.save("earthquakes_map.html")
 
