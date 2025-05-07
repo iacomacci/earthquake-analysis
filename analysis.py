@@ -1,22 +1,20 @@
 import pandas as pd
-from datetime import datetime
 from fetch_earthquakes import get_earthquake_data
 
 df, yearly, monthly = get_earthquake_data()
 
-print('Number of Earthquakes:', len(df))
-print('Data range:', df['year'].min(), 'to', df['year'].max())
-print('Strongest Earthquake:', df['magnitude'].max())
-print('Average Magnitude:', round(df['magnitude'].mean(),2))
-print('Minimum Depth:', df['depth_km'].min(), 'km')
-print('Maximum Depth:', df['depth_km'].max(), 'km')
+print('____________________________________________________________________________________________________________________________')
+print(f'Number of Earthquakes:      {len(df):,}')
+print(f'Data range:                 {df['year'].min()} to {df['year'].max()}')
+print(f'Strongest Earthquake:       {df['magnitude'].max()} Mw')
+print(f'Average Magnitude:          {round(df['magnitude'].mean(),2)} Mw')
+print(f'Minimum Depth:              {df['depth_km'].min()} km')
+print(f'Maximum Depth:              {df['depth_km'].max()} km')
 
 most_common_location = df['location'].mode()[0]
 count_most_common_location = df['location'].value_counts()[most_common_location]
 
-print(f"Most common location: {most_common_location} (appears {count_most_common_location} times)")
-
-
+print(f"Most common location:       {most_common_location} (appears {count_most_common_location} times)")
 
 print('____________________________________________________________________________________________________________________________')
 print('Key information:\n', 

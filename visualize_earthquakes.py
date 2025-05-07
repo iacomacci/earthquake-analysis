@@ -14,7 +14,6 @@ ax1.set_xlabel("Magnitude")
 ax1.set_ylabel("Count")
 ax1.set_title("Distribution of Earthquake Magnitudes")
 
-
 ax2.scatter(df["depth_km"], df["magnitude"], s=10,c='#FF00FF')
 ax2.set_xlabel("Depth (km)")
 ax2.set_ylabel("Magnitude")
@@ -33,6 +32,8 @@ ax4.bar(monthly.index, monthly.values, color='orange')
 ax4.set_label('Month')
 ax4.set_ylabel('Earthquake Count')
 ax4.set_title('Earthquake Count Per Month (All years)')
+ax4.set_xticks(monthly.index)
+ax4.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 
 plt.tight_layout()
 plt.show()
