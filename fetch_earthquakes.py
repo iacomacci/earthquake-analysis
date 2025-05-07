@@ -32,11 +32,11 @@ def fetch_earthquakes(start, end, min_mag=5):
             })
         return pd.DataFrame(records)
 
-def get_earthquake_data(start='2020-01-01', end='2025-04-01', min_mag=5):
+def get_earthquake_data(start='2014-01-01', end='2025-04-01', min_mag=5):
     df = fetch_earthquakes(start, end, min_mag)
 
     # Cleaning and Data processing
-    print(df.isnull().sum()) #Columns present no missing values.
+    #print(df.isnull().sum()) #Columns present no missing values.
     df = df.dropna(subset=["magnitude", "depth_km"])
 
     df['year'] = df['time'].dt.year     #Derived into year and month.
@@ -51,11 +51,13 @@ def get_earthquake_data(start='2020-01-01', end='2025-04-01', min_mag=5):
                         right=False)
     #print(df["mag_bin"].value_counts().sort_index())
 
+    yearly = df.groupby('year').size()
+    monthly = df.groupby('month').size()
+    print('Fetched Earthquake Data successfully!')
 
-    return df
+    return df, yearly, monthly
     
 
 if __name__ == '__main__':
-     #df = fetch_earthquakes('2020-01-01', '2025-04-01', min_mag=5)
-     df = get_earthquake_data()
+     df, yearly, monthly = get_earthquake_data()
      print(df.head())
