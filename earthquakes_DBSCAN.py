@@ -64,7 +64,6 @@ for i, label in enumerate(cluster_labels):
         rgb = colormap(i)[:3]
         color_dict[label] = colors.to_hex(rgb)
 
-
 for _, row in df.iterrows():
 
     #Popup html setup
@@ -121,7 +120,7 @@ title_html = """
                padding: 10px;
                border-radius: 8px;
                box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
-        Global Earthquake Map (Magnitude ≥ 5, 2015–2025) - DBSCAN Clustering
+        Global Earthquake Cluster Map (Magnitude ≥ 5, 2015–2025)
     </h3>
 {% endmacro %}
 """
