@@ -13,3 +13,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive map with Folium
 - Earthquake clustering using DBSCAN
 - Basic time-series analysis and visualizations
+
+### Version 2.0.0 coming soon.
