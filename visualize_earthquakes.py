@@ -21,7 +21,9 @@ ax2.set_ylabel("Magnitude")
 ax2.set_title("Depth vs. Magnitude")
 
 plt.tight_layout()
-plt.show()
+plt.show(block=False)
+plt.pause(5)  # Pause for 5 seconds
+plt.close()
 
 fig2, (ax3,ax4) = plt.subplots(2,1)
 ax3.bar(yearly.index, yearly.values, color='green')
@@ -37,8 +39,9 @@ ax4.set_xticks(monthly.index)
 ax4.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
 
 plt.tight_layout()
-plt.show()
-
+plt.show(block=False)
+plt.pause(5)  # Pause for 5 seconds
+plt.close()
 
 # Normalize magnitudes to 0–1 range
 norm = colors.Normalize(vmin=5, vmax=10)
