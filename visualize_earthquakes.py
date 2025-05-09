@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import folium
-import time
 from branca.element import Template, MacroElement
 from fetch_earthquakes import get_earthquake_data
 
