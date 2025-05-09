@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import DBSCAN
@@ -11,6 +10,7 @@ from jinja2 import Template
 import folium
 from folium import Popup
 from fetch_earthquakes import get_earthquake_data
+from map_templates import earthquakes_DBSCAN_map_title_html, earthquakes_DBSCAN_map_build_legend_html
 
 df, yearly, monthly = get_earthquake_data()
 
@@ -19,29 +19,38 @@ X = df[['latitude', 'longitude', 'depth_km', 'magnitude']].copy()
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# k = min_samples (common choice: 4 or 5)
-k = 5  
-neighbors = NearestNeighbors(n_neighbors=k)
-neighbors_fit = neighbors.fit(X_scaled)
+def k_distance_graph(X_scaled):
+    # Calculate the k-distance graph to help choose eps for DBSCAN
+    # X_scaled: scaled data
+    # k: number of neighbors to consider (min_samples in DBSCAN)
+    # This function will plot the sorted distances to the k-th nearest neighbor
 
-# Get distances to the k-th nearest neighbor
-distances, indices = neighbors_fit.kneighbors(X_scaled)
+    # Number of neighbors (k) to consider for DBSCAN
+    #k = min_samples (common choice: 4 or 5)
+    k = 5  
+    neighbors = NearestNeighbors(n_neighbors=k)
+    neighbors_fit = neighbors.fit(X_scaled)
 
-# Get the distance to the k-th neighbor for each point
-k_distances = np.sort(distances[:, k - 1])
+    # Get distances to the k-th nearest neighbor
+    distances, indices = neighbors_fit.kneighbors(X_scaled)
 
-# Plot the sorted distances
-plt.figure(figsize=(8, 4))
-plt.plot(k_distances)
-plt.xlabel("Points sorted by distance")
-plt.ylabel(f"{k}th nearest neighbor distance")
-plt.title("k-distance Graph to Help Choose eps for DBSCAN")
-plt.grid(True)
-plt.show(block=False)   
-plt.pause(5)  # Pause for 5 seconds
-plt.close()
+    # Get the distance to the k-th neighbor for each point
+    k_distances = np.sort(distances[:, k - 1])
 
-dbscan = DBSCAN(eps=0.48, min_samples=5)
+    # Plot the sorted distances
+    plt.figure(figsize=(8, 4))
+    plt.plot(k_distances)
+    plt.xlabel("Points sorted by distance")
+    plt.ylabel(f"{k}th nearest neighbor distance")
+    plt.title("k-distance Graph to Help Choose eps for DBSCAN")
+    plt.grid(True)
+    plt.show(block=False)   
+    plt.pause(5)  # Pause for 5 seconds
+    plt.close()
+
+#k_distance_graph(X_scaled) # Uncomment this line to visualize the k-distance graph
+
+dbscan = DBSCAN(eps=0.48, min_samples=5) # eps was chosen based on the k-distance graph (Elbow method)
 labels = dbscan.fit_predict(X_scaled)
 df['cluster'] = labels
 
@@ -100,46 +109,9 @@ for _, row in clustered_df.iterrows():
     popup_html_defined = create_popup(row)
 add_markers(map_without_noise, clustered_df)
 
-title_html = """
-{% macro html(this, kwargs) %}
-    <h3 style="position: fixed; 
-               top: 10px; left: 50px; width: 100%; 
-               z-index:9999;
-               font-size:20px;
-               font-weight:bold;
-               background-color: white;
-               padding: 10px;
-               border-radius: 8px;
-               box-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
-        Global Earthquake Cluster Map (Magnitude ≥ 5, 2015–2025)
-    </h3>
-{% endmacro %}
-"""
 clean_color_dict = {int(k): v for k, v in color_dict.items()}
 
-def build_legend_html(color_dict):
-    items = ""
-    for cluster_id, color in color_dict.items():
-        items += f'<i style="background:{color}; width:10px; height:10px; display:inline-block;"></i> Cluster {cluster_id}<br>'
-    return f"""
-    {{% macro html(this, kwargs) %}}
-    <div style="
-        position: fixed;
-        bottom: 50px;
-        left: 50px;
-        z-index: 9999;
-        background-color: white;
-        padding: 10px;
-        border: 2px solid black;
-        font-size: 14px;
-    ">
-        <b>Earthquake Clusters</b><br>
-        {items}
-    </div>
-    {{% endmacro %}}
-    """
-
-legend_template = build_legend_html(clean_color_dict)
+legend_template = earthquakes_DBSCAN_map_build_legend_html(clean_color_dict)
 
 class Legend(MacroElement):
     def __init__(self):
@@ -150,9 +122,9 @@ map_all_clusters.get_root().add_child(Legend())
 map_without_noise.get_root().add_child(Legend())
 
 macro1 = MacroElement()
-macro1._template = Template(title_html)
+macro1._template = Template(earthquakes_DBSCAN_map_title_html)
 macro2 = MacroElement()
-macro2._template = Template(title_html)
+macro2._template = Template(earthquakes_DBSCAN_map_title_html)
 map_all_clusters.get_root().add_child(macro1)
 map_without_noise.get_root().add_child(macro2)
 
