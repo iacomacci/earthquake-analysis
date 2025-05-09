@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 from branca.element import Template, MacroElement
+from jinja2 import Template
 import folium
 from folium import Popup
-from folium.plugins import MarkerCluster
 from fetch_earthquakes import get_earthquake_data
 
 df, yearly, monthly = get_earthquake_data()
@@ -47,8 +47,9 @@ df['cluster'] = labels
 
 # Center the map (e.g., around mean location)
 map_center = [df['latitude'].mean(), df['longitude'].mean()]
-m1 = folium.Map(location=map_center, zoom_start=2) #Map 1 will include all clusters. 
-m2 = folium.Map(location=map_center, zoom_start=2) #Map 2 will exclude noise.
+map_all_clusters = folium.Map(location=map_center, zoom_start=2) #Map 1 will include all clusters. 
+map_without_noise = folium.Map(location=map_center, zoom_start=2) #Map 2 will exclude noise.
+
 
 # Number of unique clusters excluding noise
 n_clusters = df['cluster'].nunique() - (1 if -1 in df['cluster'].values else 0)
@@ -64,50 +65,40 @@ for i, label in enumerate(cluster_labels):
         rgb = colormap(i)[:3]
         color_dict[label] = colors.to_hex(rgb)
 
+def create_popup(row):
+    #Popup html setup
+    return Popup(f"""
+        <table style="font-size: 12px;">
+        <tr><td><strong>Magnitude:</strong></td><td>{row['magnitude']}</td></tr>
+        <tr><td><strong>Cluster:</strong></td><td>{row['cluster']}</td></tr>
+        <tr><td><strong>Depth:</strong></td><td>{row['depth_km']} km</td></tr>
+        </table>
+    """, max_width=250)
+
+def add_markers(map_obj, data):
+    for _, row in data.iterrows():
+        popup = create_popup(row)
+        folium.CircleMarker(
+            location=[row['latitude'], row['longitude']],
+            radius=2 + row['magnitude'],
+            color=color_dict[row['cluster']],
+            fill=True,
+            fill_opacity=0.4,
+            popup=popup
+        ).add_to(map_obj)
+
 for _, row in df.iterrows():
 
-    #Popup html setup
-    popup_html = f"""
-    <table style="font-size: 12px;">
-    <tr><td><strong>Magnitude:</strong></td><td>{row['magnitude']}</td></tr>
-    <tr><td><strong>Cluster:</strong></td><td>{row['cluster']}</td></tr>
-    <tr><td><strong>Depth:</strong></td><td>{row['depth_km']} km</td></tr>
-    </table>
-    """
-    popup_html_defined = Popup(popup_html, max_width=250)
-
-    folium.CircleMarker(
-        location=[row['latitude'], row['longitude']],
-        radius=2 + row['magnitude'],  # scale by magnitude
-        color=color_dict[row['cluster']],
-        fill=True,
-        fill_opacity=0.4,
-        popup=popup_html_defined
-    ).add_to(m1)
+    popup_html_defined = create_popup(row)
+add_markers(map_all_clusters, df)
 
 # Filter out noise points (label == -1)
 clustered_df = df[df['cluster'] != -1]
 
 for _, row in clustered_df.iterrows():
 
-    #Popup html setup
-    popup_html = f"""
-    <table style="font-size: 12px;">
-    <tr><td><strong>Magnitude:</strong></td><td>{row['magnitude']}</td></tr>
-    <tr><td><strong>Cluster:</strong></td><td>{row['cluster']}</td></tr>
-    <tr><td><strong>Depth:</strong></td><td>{row['depth_km']} km</td></tr>
-    </table>
-    """
-    popup_html_defined = Popup(popup_html, max_width=250)
-
-    folium.CircleMarker(
-        location=[row['latitude'], row['longitude']],
-        radius=2 + row['magnitude'],  # scale by magnitude
-        color=color_dict[row['cluster']],
-        fill=True,
-        fill_opacity=0.4,
-        popup=popup_html_defined
-    ).add_to(m2)
+    popup_html_defined = create_popup(row)
+add_markers(map_without_noise, clustered_df)
 
 title_html = """
 {% macro html(this, kwargs) %}
@@ -124,10 +115,46 @@ title_html = """
     </h3>
 {% endmacro %}
 """
-macro = MacroElement()
-macro._template = Template(title_html)
-m1.get_root().add_child(macro)
-m2.get_root().add_child(macro)
+clean_color_dict = {int(k): v for k, v in color_dict.items()}
 
-m1.save("clustered_earthquakes_map.html")
-m2.save("non_noise_clustered_earthquakes_map.html")
+def build_legend_html(color_dict):
+    items = ""
+    for cluster_id, color in color_dict.items():
+        items += f'<i style="background:{color}; width:10px; height:10px; display:inline-block;"></i> Cluster {cluster_id}<br>'
+    return f"""
+    {{% macro html(this, kwargs) %}}
+    <div style="
+        position: fixed;
+        bottom: 50px;
+        left: 50px;
+        z-index: 9999;
+        background-color: white;
+        padding: 10px;
+        border: 2px solid black;
+        font-size: 14px;
+    ">
+        <b>Earthquake Clusters</b><br>
+        {items}
+    </div>
+    {{% endmacro %}}
+    """
+
+legend_template = build_legend_html(clean_color_dict)
+
+class Legend(MacroElement):
+    def __init__(self):
+        super().__init__()
+        self._template = Template(legend_template)
+
+map_all_clusters.get_root().add_child(Legend())
+map_without_noise.get_root().add_child(Legend())
+
+macro1 = MacroElement()
+macro1._template = Template(title_html)
+macro2 = MacroElement()
+macro2._template = Template(title_html)
+map_all_clusters.get_root().add_child(macro1)
+map_without_noise.get_root().add_child(macro2)
+
+map_all_clusters.save("clustered_earthquakes_map.html")
+map_without_noise.save("non_noise_clustered_earthquakes_map.html")
