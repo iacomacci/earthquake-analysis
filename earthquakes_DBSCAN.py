@@ -96,17 +96,11 @@ def add_markers(map_obj, data):
             popup=popup
         ).add_to(map_obj)
 
-for _, row in df.iterrows():
-
-    popup_html_defined = create_popup(row)
 add_markers(map_all_clusters, df)
 
 # Filter out noise points (label == -1)
 clustered_df = df[df['cluster'] != -1]
 
-for _, row in clustered_df.iterrows():
-
-    popup_html_defined = create_popup(row)
 add_markers(map_without_noise, clustered_df)
 
 clean_color_dict = {int(k): v for k, v in color_dict.items()}

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import folium
+from folium import Popup
 from branca.element import Template, MacroElement
 from fetch_earthquakes import get_earthquake_data
 from map_templates import earthquakes_map_legend_html, earthquakes_map_title_html
@@ -48,31 +49,43 @@ norm = colors.Normalize(vmin=5, vmax=10)
 cmap = cm.get_cmap('YlOrRd')  # Yellow -> Orange -> Red
 
 map_center = [df['latitude'].mean(), df['longitude'].mean()]
-m = folium.Map(location=[0, 0], zoom_start=2)
+map_earthquakes = folium.Map(location=[0, 0], zoom_start=2)
 
-for _, row in df.iterrows():
+def create_popup(row):
+    #Popup html setup
+    return Popup(f"""
+        <table style="font-size: 12px;">
+        <tr><td><strong>Location:</strong></td><td>{row['location']}</td></tr>
+        <tr><td><strong>Magnitude:</strong></td><td>{row['magnitude']}</td></tr>
+        <tr><td><strong>Depth:</strong></td><td>{row['depth_km']} km</td></tr>
+        </table>
+    """, max_width=250)
 
-    magnitude = row['magnitude']
-    color_rgb = cmap(norm(magnitude))  # RGBA
-    color_hex = colors.to_hex(color_rgb)
+def add_markers(map_obj, data):
+    for _, row in data.iterrows():
+        magnitude = row['magnitude']
+        color_rgb = cmap(norm(magnitude))  # RGBA
+        color_hex = colors.to_hex(color_rgb)
+        popup = create_popup(row)
+        folium.CircleMarker(
+            location=[row['latitude'], row['longitude']],
+            radius=row['magnitude'],
+            color=color_hex,
+            fill=True,
+            fill_color=color_hex,
+            fill_opacity=0.4,
+            popup=popup
+        ).add_to(map_obj)
 
-    folium.CircleMarker(
-        location=[row['latitude'], row['longitude']],
-        radius=row['magnitude'],  # scaled by magnitude
-        popup=f"{row['location']}: M{row['magnitude']}",
-        color=color_hex,
-        fill=True,
-        fill_color=color_hex,
-        fill_opacity=0.4
-    ).add_to(m)
+add_markers(map_earthquakes, df)
 
 
-m.get_root().html.add_child(folium.Element(earthquakes_map_legend_html))
+map_earthquakes.get_root().html.add_child(folium.Element(earthquakes_map_legend_html))
 
 macro = MacroElement()
 macro._template = Template(earthquakes_map_title_html)
-m.get_root().add_child(macro)
+map_earthquakes.get_root().add_child(macro)
 
-m.save("earthquakes_map.html")
+map_earthquakes.save("earthquakes_map.html")
 
 
