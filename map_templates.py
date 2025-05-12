@@ -58,7 +58,10 @@ earthquakes_DBSCAN_map_title_html = """
 def earthquakes_DBSCAN_map_build_legend_html(color_dict):
     items = ""
     for cluster_id, color in color_dict.items():
-        items += f'<i style="background:{color}; width:10px; height:10px; display:inline-block;"></i> Cluster {cluster_id}<br>'
+        if cluster_id == -1:
+            items += f'<i style="background:black; width:10px; height:10px; display:inline-block;"></i> Noise<br>'
+        else:
+            items += f'<i style="background:{color}; width:10px; height:10px; display:inline-block;"></i> Cluster {cluster_id}<br>'
     return f"""
     {{% macro html(this, kwargs) %}}
     <div style="
